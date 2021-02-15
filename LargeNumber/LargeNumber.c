@@ -48,7 +48,7 @@ static int8_t LNPop (int8_t *ch) {            		//确认无误
 //输入
 void LNScan(LN *des) {            		//确认无误
 	LNInit(des);//初始化
-	
+
 	//输入数据入栈
 	{
 		int8_t ch;
@@ -56,7 +56,7 @@ void LNScan(LN *des) {            		//确认无误
 		if (ch >= '0' && ch <= '9') {
 			LNPush(ch);
 		}
-		
+
 		while(1) {
 			if ((ch = getchar()) < '0' || ch > '9') {
 				break;
@@ -69,7 +69,7 @@ void LNScan(LN *des) {            		//确认无误
 		}
 		LNStack.top--;//保证压栈结束后栈顶指针指向有效元素
 	}
-	
+
 	//出栈转移到指定变量
 	{
 		int8_t *p = &(des->digit[LEN - 1]);
@@ -83,7 +83,7 @@ void LNScan(LN *des) {            		//确认无误
 			}
 		}
 	}
-	
+
 }
 
 //统计位数
@@ -126,7 +126,7 @@ void LNPrint (LN *src) {            		//确认无误
 	//循环输出
 	//先输出第一位（有符号）
 	printf("%"PRId8, *p);
-	
+
 	if(p - &(src->digit[0]) == LEN - 1) {//如果当前是最后一位，退出
 		return;
 	} else {
@@ -139,17 +139,88 @@ void LNPrint (LN *src) {            		//确认无误
 			printf("%"PRId8, abs((int)(*p)));
 			p++;
 		}
-		
-		
+
+
 	}
-	
+
 }
+
+//大数加法
+LN LNAdd(const LN a, const LN b) {
+	LN result;
+	memset(result.digit, 0, sizeof(result.digit));
+
+	int i = 0;
+	int8_t temp = 0;
+	for (i = LEN - 1; i >= 0; i--) {
+		if (a.digit[i] == 0 && b.digit[i] == 0) {
+			break;
+		} else {
+			temp = a.digit[i] + b.digit[i];
+
+			result.digit[i] += temp % 10;
+			if(temp > 9) {
+				temp /= 10;
+				result.digit[i - 1] += temp;
+			}
+		}
+	}
+	return result;
+}
+
+//大数减法
+LN LNSubtract (const LN a, const LN b) {
+	LN result;
+	memset(result.digit, 0, sizeof(result.digit));
+
+	int i = 0;
+	int8_t temp = 0;
+	for(i = 0; a.digit[i] == 0 && b.digit[i] == 0; i++);
+
+	//处理最高位，决定正负
+	temp = a.digit[i] - b.digit[i];
+	result.digit[i] += temp;
+	i++;
+
+	for (;i <= LEN - 1; i++) {
+		if (a.digit[i] == 0 && b.digit[i] == 0) {
+			break;
+		} else {
+			temp = a.digit[i] - b.digit[i];
+
+			if (temp * result.digit[i - 1] < 0) {
+				if (temp < 0) {
+					result.digit[i - 1] -= 1;
+					temp += 10;
+				} else {
+					result.digit[i - 1] += 1;
+					temp -= 10;
+				}
+			}
+			result.digit[i] += temp;
+		}
+	}
+	return result;
+
+}
+
 
 int main(void) {
 	LN a;
-	memset(a.digit, 0, sizeof(a.digit));
 	LNScan(&a);
-	
-	
+	LN b;
+	LNScan(&b);
+
+	LN c;
+	c = LNSubtract(a, b);
+
+	LNPrint(&c);
+
+
 	return 0;
 }
+
+/*
+可优化：
+1：目前未考虑输入负号；
+*/
