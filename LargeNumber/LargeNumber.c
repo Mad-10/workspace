@@ -230,17 +230,51 @@ LN LNMultiply (LN a, LN b) {
 	return result;
 }
 
-//大数除法
-LN LNDivide (LN a, LN b) {
+LN LNPow (LN base, int exp) {
+	LN result;
+	memset(result.digit, 0, sizeof(result.digit));
+	if (exp <= 0) {
+		result.digit[LEN - 1] = 1;
+		return result;
+	} else if (exp & 1){
+		exp--;
+		return result = LNMultiply(base, LNPow(base, exp));
+	} else {
+		exp >>= 1;
+		result = LNPow(base, exp);
+		return result = LNMultiply(result, result);
+	}
 
 }
+
+//大数除法
+LN LNDivide (LN a, LN b) {
+//	LN quotient;
+//	memset(quotient.digit, 0, quotient.digit);
+//	LN remain;
+//	memset(remain.digit, 0, remain.digit);
+	int alen = LNLength (a);
+	int blen = LNLength (b);
+
+	int i = 0;
+	int j = 0;
+
+	for (i = LEN - 1 - alen; i <= LEN - 1; i++) {
+
+		for (j = 0; j = blen; j++) {
+
+		}
+
+	}
+}
+
 int main(void) {
 	LN a;
 	memset(a.digit, 0, sizeof(a.digit));
     LNScan(&a);
-	LN b;
-	memset(b.digit, 0, sizeof(b.digit));
-    LNScan(&b);
+//	LN b;
+//	memset(b.digit, 0, sizeof(b.digit));
+//    LNScan(&b);
 //	a.digit[LEN - 2] = 9;
 //	a.digit[LEN - 1] = 8;
 //	b.digit[LEN - 1] = 2;
@@ -251,8 +285,11 @@ int main(void) {
 //		LNPrint(&a);
 //		putchar('\n');
 //	}
+
+	int exp;
+	scanf("%d", &exp);
 	LN c;
-	c = LNMultiply(a, b);
+	c = LNPow(a, exp);
 	LNPrint(&c);
 	return 0;
 }
