@@ -13,13 +13,34 @@ typedef struct Stack{            		//确认无误
 	int8_t *top;
 }Stack;
 
-static Stack LNStack;
+static Stack LNStack;//全局变量，辅助输入
+LN One;
+LN Zero;
+
+static void LNInit(LN *obj);//初始化
+static int8_t LNPush (int8_t ch);//压栈
+static int8_t LNPop (int8_t *ch);//出栈
+void LNScan(LN *des);//输入
+int LNLength(LN src);//统计位数，参考借鉴strlen();
+void LNPrint (LN *src);//输出
+LN LNAdd(LN a, LN b);//加法·模仿人类计算方法
+LN LNSubtract (const LN a, const LN b);//减法·模仿人类计算方法
+int LNCompare(LN a, LN b);//大数比较，参考借鉴strcmp();
+LN LNMultiply (LN a, LN b);//乘法·模仿人类计算方法
+LN LNPow (LN base, int exp);//正整数幂运算·快速幂
+static LN LNDivide(LN dividend, LN divisor, int8_t flag);//除法
+LN LNQuotient(LN dividend, LN divisor);//取商
+LN LNRemain(LN dividend, LN divisor);//取余
+
 
 //初始化
 static void LNInit(LN *obj) {            		//确认无误
 	memset(LNStack.data, 0, sizeof(LNStack.data));//初始化栈
 	LNStack.top = LNStack.data;
 	memset((obj->digit), 0, sizeof(obj->digit));//初始化指定对象
+	memset(One.digit, 0, sizeof(One.digit));
+	One.digit[LEN - 1] = 1;
+	memset(Zero.digit, 0, sizeof(Zero.digit));
 }
 
 //压栈
@@ -146,7 +167,7 @@ void LNPrint (LN *src) {            		//确认无误
 }
 
 //大数加法
-LN LNAdd(LN a, LN b) {
+LN LNAdd(LN a, LN b) {            		//确认无误
 	LN result;
 	memset(result.digit, 0, sizeof(result.digit));
 	int alen = LNLength(a);
@@ -171,7 +192,7 @@ LN LNAdd(LN a, LN b) {
 }
 
 //大数减法
-LN LNSubtract (const LN a, const LN b) {
+LN LNSubtract (const LN a, const LN b) {            		//确认无误
 	LN result;
 	memset(result.digit, 0, sizeof(result.digit));
 
@@ -200,9 +221,24 @@ LN LNSubtract (const LN a, const LN b) {
 
 }
 
+//大数比较
+int LNCompare(LN a, LN b) {
+	int alen = LNLength(a);
+	int blen = LNLength(b);
+	int len = (alen > blen) ? (alen) : (blen);
+	int flag = 0;
+	int i = 0;
+	for (i = LEN - 1 - len; i <= LEN - 1; i++) {
+		flag = a.digit[i] - b.digit[i];
+		if(flag != 0) {
+			return flag;
+		}
+	}
+	return flag;
+}
 
 //大数乘法
-LN LNMultiply (LN a, LN b) {
+LN LNMultiply (LN a, LN b) {            		//确认无误
 	LN result;
 	memset(result.digit, 0, sizeof(result.digit));
 	LN sum;
@@ -230,7 +266,7 @@ LN LNMultiply (LN a, LN b) {
 	return result;
 }
 
-LN LNPow (LN base, int exp) {
+LN LNPow (LN base, int exp) {            		//确认无误
 	LN result;
 	memset(result.digit, 0, sizeof(result.digit));
 	if (exp <= 0) {
@@ -248,33 +284,46 @@ LN LNPow (LN base, int exp) {
 }
 
 //大数除法
-LN LNDivide (LN a, LN b) {
-//	LN quotient;
-//	memset(quotient.digit, 0, quotient.digit);
-//	LN remain;
-//	memset(remain.digit, 0, remain.digit);
-	int alen = LNLength (a);
-	int blen = LNLength (b);
+static LN LNDivide(LN dividend, LN divisor, int8_t flag) {
+	LN remain;
+	memset(remain.digit, 0, sizeof(remain.digit));
+	remain = LNAdd(remain, dividend);
 
-	int i = 0;
-	int j = 0;
-
-	for (i = LEN - 1 - alen; i <= LEN - 1; i++) {
-
-		for (j = 0; j = blen; j++) {
-
+	LN quotient;
+	memset(quotient.digit, 0, sizeof(quotient.digit));
+	{
+		for (; LNCompare(remain, divisor) >= 0; ) {
+			int len1 = LNLength(dividend);
+			int len2 = LNLength(divisor);
+			quotient = LNAdd(quotient, One);
+			remain = LNSubtract(dividend, LNMultiply(divisor, quotient));
 		}
-
+	}
+	if(flag == 0) {
+		return quotient;
+	} else {
+		return remain;
 	}
 }
 
+
+LN LNQuotient(LN dividend, LN divisor) {
+	return LNDivide(dividend, divisor, 0);
+}
+
+LN LNRemain(LN dividend, LN divisor) {
+	return LNDivide(dividend, divisor, 1);
+}
+
 int main(void) {
+	LNInit(&Zero);
+
 	LN a;
 	memset(a.digit, 0, sizeof(a.digit));
     LNScan(&a);
-//	LN b;
-//	memset(b.digit, 0, sizeof(b.digit));
-//    LNScan(&b);
+	LN b;
+	memset(b.digit, 0, sizeof(b.digit));
+    LNScan(&b);
 //	a.digit[LEN - 2] = 9;
 //	a.digit[LEN - 1] = 8;
 //	b.digit[LEN - 1] = 2;
@@ -286,10 +335,13 @@ int main(void) {
 //		putchar('\n');
 //	}
 
-	int exp;
-	scanf("%d", &exp);
+//	int exp;
+//	scanf("%d", &exp);
 	LN c;
-	c = LNPow(a, exp);
+	c = LNQuotient(a, b);
+	LNPrint(&c);
+	putchar('\n');
+	c = LNRemain(a, b);
 	LNPrint(&c);
 	return 0;
 }
@@ -299,4 +351,5 @@ int main(void) {
 1：目前未考虑输入负数；
 2:获取可以利用闲置的栈；
 3:利用位数计算函数；已优化
+4:除法算法有待优化
 */
